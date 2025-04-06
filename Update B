@@ -1,0 +1,83 @@
+// Project 5 - Controlling Traffic by Levi Luhring
+
+// Define the pins for buttons and lights
+#define westButton 3
+#define eastButton 13
+#define westRed 2
+#define westYellow 1
+#define westGreen 0
+#define eastRed 12
+#define eastYellow 11
+#define eastGreen 10
+
+#define yellowBlinkTime 500  // 0.5 seconds for yellow light blink
+boolean trafficWest = true;  // west = true, east = false
+int flowTime = 10000;        // Time for traffic flow
+int changeDelay = 2000;      // Time between color changes
+
+void setup() {
+  pinMode(westButton, INPUT);
+  pinMode(eastButton, INPUT);
+  pinMode(westRed, OUTPUT);
+  pinMode(westYellow, OUTPUT);
+  pinMode(westGreen, OUTPUT);
+  pinMode(eastRed, OUTPUT);
+  pinMode(eastYellow, OUTPUT);
+  pinMode(eastGreen, OUTPUT);
+
+  // Set initial state: west starts green, east red
+  digitalWrite(westRed, LOW);
+  digitalWrite(westYellow, LOW);
+  digitalWrite(westGreen, HIGH);
+  digitalWrite(eastRed, HIGH);
+  digitalWrite(eastYellow, LOW);
+  digitalWrite(eastGreen, LOW);
+}
+
+void loop() {
+  if (digitalRead(westButton) == HIGH && !trafficWest) {
+    allowTrafficFlow(true);
+  }
+  if (digitalRead(eastButton) == HIGH && trafficWest) {
+    allowTrafficFlow(false);
+  }
+}
+
+// Function to change the traffic lights from green to red
+void changeLightsToRed(int greenPin, int yellowPin, int redPin) {
+  digitalWrite(greenPin, LOW);
+  digitalWrite(yellowPin, HIGH);
+  delay(changeDelay);
+  digitalWrite(yellowPin, LOW);
+  digitalWrite(redPin, HIGH);
+  delay(changeDelay);
+}
+
+// Function to blink the yellow light before allowing traffic flow
+void blinkYellowLight(int yellowPin) {
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(yellowPin, LOW);
+    delay(yellowBlinkTime);
+    digitalWrite(yellowPin, HIGH);
+    delay(yellowBlinkTime);
+  }
+  digitalWrite(yellowPin, LOW);
+}
+
+// Function to handle traffic flow switch
+void allowTrafficFlow(bool toWest) {
+  trafficWest = toWest;
+  delay(flowTime);  // Allow current traffic to flow
+
+  if (toWest) {
+    changeLightsToRed(eastGreen, eastYellow, eastRed);
+    blinkYellowLight(westYellow);
+    digitalWrite(westRed, LOW);
+    digitalWrite(westGreen, HIGH);
+  } else {
+    changeLightsToRed(westGreen, westYellow, westRed);
+    blinkYellowLight(eastYellow);
+    digitalWrite(eastRed, LOW);
+    digitalWrite(eastGreen, HIGH);
+  }
+}
